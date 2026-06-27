@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windy City Weapon Stats</title>
+    <style>
+        /* Base Page Styles */
+        body {
+            background-color: #050508;
+            color: #ffffff;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 140px;
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background-color: #050508;
+            border-right: 1px solid #1e1b4b;
+        }
+
+        .nav-btn {
+            background-color: #171026;
+            color: #a855f7;
+            border: 2px solid #582196;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background-color: #582196;
+            color: #fff;
+            box-shadow: 0 0 8px #a855f7;
+        }
+
+        .nav-btn.config-btn {
+            margin-top: auto;
+            color: #38bdf8;
+            border-color: #0369a1;
+            background-color: #0c4a6e;
+        }
+        .nav-btn.config-btn:hover {
+            background-color: #0369a1;
+            box-shadow: 0 0 8px #38bdf8;
+        }
+
+        /* Main Content Container */
+        .main-content {
+            flex: 1;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        h1 {
+            color: #9333ea;
+            font-size: 2.2rem;
+            font-weight: 400;
+            margin: 0 0 5px 0;
+            text-shadow: 0 0 10px rgba(147, 51, 234, 0.3);
+        }
+
+        .subtitle {
+            color: #38bdf8;
+            font-size: 1rem;
+            margin-bottom: 30px;
+        }
+
+        /* Main Horizontal Spinner Box */
+        .spinner-box {
+            position: relative;
+            width: 90%;
+            max-width: 750px;
+            height: 130px;
+            background-color: #0b0b12;
+            border: 1px solid #1e1b4b;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.9);
+            margin-bottom: 20px;
+        }
+
+        /* Vertical Center Selector Pin */
+        .center-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            width: 3px;
+            height: 100%;
+            background-color: #f59e0b;
+            z-index: 10;
+            transform: translateX(-50%);
+            box-shadow: 0 0 8px #f59e0b;
+        }
+
+        /* Sliding internal strip wrapper */
+        .strip-track {
+            display: flex;
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            transition: transform 4s cubic-bezier(0.1, 0.85, 0.1, 1);
+            will-change: transform;
+        }
+
+        /* Individual Card Items inside the strip */
+        .strip-item {
+            width: 130px;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-right: 1px solid rgba(255, 255, 255, 0.03);
+            box-sizing: border-box;
+            background: linear-gradient(180deg, #11111c 0%, #08080f 100%);
+            padding: 10px;
+        }
+
+        /* Rarity Classes */
+        .rarity-common { color: #94a3b8; }
+        .rarity-rare { color: #3b82f6; }
+        .rarity-epic { color: #a855f7; }
+        .rarity-legendary { color: #f59e0b; }
+
+        /* Action Spin Buttons */
+        .spin-btn {
+            background-color: #171026;
+            color: #ffffff;
+            border: 1px solid #9333ea;
+            padding: 10px 40px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            transition: background 0.2s;
+        }
+
+        .spin-btn:hover {
+            background-color: #9333ea;
+        }
+
+        .results-header {
+            color: #f59e0b;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .output-text {
+            font-size: 1.8rem;
+            font-weight: bold;
+            min-height: 40px;
+        }
+
+        /* Configuration Modal/Panel */
+        .config-panel {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #0f0f16;
+            border: 2px solid #38bdf8;
+            border-radius: 8px;
+            padding: 25px;
+            z-index: 100;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+        }
+
+        .config-panel h2 {
+            margin-top: 0;
+            color: #38bdf8;
+            font-size: 1.5rem;
+        }
+
+        .config-panel label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            color: #cbd5e1;
+        }
+
+        .config-panel textarea {
+            width: 100%;
+            height: 80px;
+            background-color: #050508;
+            border: 1px solid #334155;
+            color: #fff;
+            padding: 8px;
+            border-radius: 4px;
+            box-sizing: border-box;
+            resize: none;
+            font-family: monospace;
+        }
+
+        .config-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .panel-btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            font-weight: bold;
+        }
+
+        .save-btn { background-color: #38bdf8; color: #000; }
+        .close-btn { background-color: #334155; color: #fff; }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 99;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <button class="nav-btn active" onclick="switchTier('t1', this)">Show T1</button>
+        <button class="nav-btn" onclick="switchTier('t2', this)">Show T2</button>
+        <button class="nav-btn" onclick="switchTier('t3', this)">Show T3</button>
+        <button class="nav-btn config-btn" onclick="openConfig()">⚙ Config</button>
+    </div>
+
+    <div class="main-content">
+        <h1 id="title-display">Windy City Weapon Stats (T1)</h1>
+        <div class="subtitle">Simulate a faction drop spin</div>
+        
+        <div class="spinner-box">
+            <div class="center-line"></div>
+            <div class="strip-track" id="weapon-track"></div>
+        </div>
+
+        <button class="spin-btn" id="spin-btn" onclick="executeSpin()">Spin</button>
+
+        <div class="results-header">Your drops</div>
+        <div class="output-text" id="weapon-result">---</div>
+    </div>
+
+    <div class="modal-overlay" id="overlay" onclick="closeConfig()"></div>
+    <div class="config-panel" id="config-panel">
+        <h2>Configure Tier Pools</h2>
+        <p style="font-size: 0.85rem; color: #64748b; margin: 0;">Separate item names with commas.</p>
+        
+        <label for="config-t1">Tier 1 Items:</label>
+        <textarea id="config-t1"></textarea>
+
+        <label for="config-t2">Tier 2 Items:</label>
+        <textarea id="config-t2"></textarea>
+
+        <label for="config-t3">Tier 3 Items:</label>
+        <textarea id="config-t3"></textarea>
+
+        <div class="config-actions">
+            <button class="panel-btn close-btn" onclick="closeConfig()">Cancel</button>
+            <button class="panel-btn save-btn" onclick="saveConfig()">Save Changes</button>
+        </div>
+    </div>
+
+    <script>
+        // Default pool options if none are customized
+        let weaponPools = {
+            t1: [
+                { name: "Glock 17", class: "rarity-common" },
+                { name: "M9 Pistol", class: "rarity-common" },
+                { name: "Mac-10", class: "rarity-rare" }
+            ],
+            t2: [
+                { name: "MP5", class: "rarity-rare" },
+                { name: "UMP-45", class: "rarity-rare" },
+                { name: "AK-47", class: "rarity-epic" }
+            ],
+            t3: [
+                { name: "M4A4", class: "rarity-epic" },
+                { name: "Desert Eagle", class: "rarity-epic" },
+                { name: "AWP Sniper", class: "rarity-legendary" }
+            ]
+        };
+
+        let currentTier = 't1';
+        const itemWidth = 130; 
+        const weaponTrack = document.getElementById('weapon-track');
+        const weaponResult = document.getElementById('weapon-result');
+        const titleDisplay = document.getElementById('title-display');
+        let isSpinning = false;
+
+        // Populate items inside the track strip
+        function populateTrack(tier) {
+            weaponTrack.innerHTML = '';
+            const pool = weaponPools[tier];
+            
+            // Repeat pool elements to fill standard lane distance (90 entries)
+            for (let i = 0; i < 90; i++) {
+                const item = pool[i % pool.length];
+                const element = document.createElement('div');
+                element.className = `strip-item ${item.class}`;
+                element.innerHTML = `<div>${item.name}</div>`;
+                weaponTrack.appendChild(element);
+            }
+        }
+
+        // Switch active tier view configuration
+        function switchTier(tier, buttonComponent) {
+            if (isSpinning) return;
+            currentTier = tier;
+            
+            // Toggle active styling states on sidebar buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            if(buttonComponent) buttonComponent.classList.add('active');
+
+            titleDisplay.textContent = `Windy City Weapon Stats (${tier.toUpperCase()})`;
+            populateTrack(tier);
+            weaponResult.textContent = "---";
+            weaponResult.className = "output-text";
+        }
+
+        // Kinetic Roller Wheel Trigger Mechanism
+        function executeSpin() {
+            if (isSpinning) return;
+            isSpinning = true;
+
+            weaponResult.textContent = "Spinning...";
+            weaponResult.className = "output-text";
+
+            // Snap track positions completely backwards instantly
+            weaponTrack.style.transition = 'none';
+            weaponTrack.style.transform = 'translateX(0px)';
+            weaponTrack.offsetHeight; // layout reflow trigger
+
+            // Target random cell indexes down the pipeline lane
+            const targetIndex = Math.floor(Math.random() * 10) + 70; 
+            const winningElement = weaponTrack.children[targetIndex];
+            const winningName = winningElement.innerText;
+            const winningClass = winningElement.className.replace('strip-item ', '');
+
+            const boxWidth = document.querySelector('.spinner-box').offsetWidth;
+            const microOffset = Math.floor(Math.random() * (itemWidth - 30)) + 15;
+            const targetX = (boxWidth / 2) - (targetIndex * itemWidth) - microOffset;
+
+            // Animate transition layout movement physics
+            weaponTrack.style.transition = 'transform 4s cubic-bezier(0.1, 0.85, 0.1, 1)';
+            weaponTrack.style.transform = `translateX(${targetX}px)`;
+
+            setTimeout(() => {
+                weaponResult.textContent = winningName;
+                weaponResult.className = `output-text ${winningClass}`;
+                isSpinning = false;
+            }, 4000);
+        }
+
+        /* --- Configuration Logic Systems --- */
+        function openConfig() {
+            if (isSpinning) return;
+            
+            // Load current lists into input areas
+            document.getElementById('config-t1').value = weaponPools.t1.map(i => i.name).join(', ');
+            document.getElementById('config-t2').value = weaponPools.t2.map(i => i.name).join(', ');
+            document.getElementById('config-t3').value = weaponPools.t3.map(i => i.name).join(', ');
+
+            document.getElementById('config-panel').style.display = 'block';
+            document.getElementById('overlay').style.display = 'block';
+        }
+
+        function closeConfig() {
+            document.getElementById('config-panel').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+        }
+
+        function saveConfig() {
+            const parseInput = (id, rarityDefault) => {
+                const val = document.getElementById(id).value;
+                return val.split(',')
+                    .map(item => item.trim())
+                    .filter(item => item.length > 0)
+                    .map(name => ({ name: name, class: rarityDefault }));
+            };
+
+            const t1Parsed = parseInput('config-t1', 'rarity-common');
+            const t2Parsed = parseInput('config-t2', 'rarity-rare');
+            const t3Parsed = parseInput('config-t3', 'rarity-legendary');
+
+            // Fallback validation if fields are left entirely empty
+            if(t1Parsed.length > 0) weaponPools.t1 = t1Parsed;
+            if(t2Parsed.length > 0) weaponPools.t2 = t2Parsed;
+            if(t3Parsed.length > 0) weaponPools.t3 = t3Parsed;
+
+            populateTrack(currentTier);
+            closeConfig();
+        }
+
+        // Initialize display configuration defaults
+        populateTrack('t1');
+    </script>
+</body>
+</html>
